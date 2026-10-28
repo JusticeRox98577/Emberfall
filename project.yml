@@ -21,6 +21,7 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UIStatusBarHidden: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: Saves your wallpaper image to Photos so you can set it as your wallpaper.
         INFOPLIST_KEY_NSMotionUsageDescription: Tilts the wallpaper scene as you move your phone.
         INFOPLIST_KEY_CFBundleDisplayName: Emberingfall
         SWIFT_VERSION: "5.0"

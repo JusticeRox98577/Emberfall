@@ -9,11 +9,11 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui);overflo
 .layer{position:absolute;inset:0;background-position:center;background-repeat:no-repeat;background-size:cover;will-change:transform}
 #bg{transform:translateZ(-300px) scale(1.75)}
 #rock{transform:translateZ(120px) scale(.88)}
-#hint{position:fixed;left:0;right:0;bottom:0;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 22px);text-align:center;font-weight:500;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);pointer-events:none;transition:opacity .7s ease}
+#hint{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 0;text-align:center;font-weight:500;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);pointer-events:none;transition:opacity .7s ease}
 #hint.off{opacity:0}
 </style>
 <div id="stage"><div id="world"><div class="layer" id="bg" style="background-image:url(bg.jpg)"></div><div class="layer" id="rock" style="background-image:url(rock.png)"></div></div></div>
-<div id="hint">Drag to tilt · Tap to hide</div>
+<div id="hint">Drag to tilt</div>
 <script>
 (function(){
   var MAX=10,world=document.getElementById('world'),stage=document.getElementById('stage'),hint=document.getElementById('hint');
