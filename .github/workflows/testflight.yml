@@ -1,0 +1,56 @@
+name: TestFlight
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      BUNDLE_ID: ${{ vars.BUNDLE_ID }}
+      TEAM_ID: ${{ vars.TEAM_ID }}
+      KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install xcodegen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Write App Store Connect key
+        env:
+          KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          mkdir -p "$HOME/private_keys"
+          printf '%s' "$KEY_P8" > "$HOME/private_keys/AuthKey_$KEY_ID.p8"
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project EmberFall.xcodeproj -scheme EmberFall \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/EmberFall.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_$KEY_ID.p8" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER_ID" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }}
+      - name: Export and upload to TestFlight
+        run: |
+          cat > build/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath build/EmberFall.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_$KEY_ID.p8" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER_ID"

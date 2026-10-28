@@ -1,0 +1,46 @@
+<title>Ember Fall</title>
+<style>
+/* Layout concept: a full bleed AI photo split into depth layers, tilted at most 10 degrees by drag. */
+:root{--bg:#02030a;--fg:#eef1fa;--mute:rgba(238,241,250,.62);--ui:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#stage{position:fixed;inset:0;overflow:hidden;perspective:1000px;touch-action:none;cursor:grab;background:var(--bg)}
+#world{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.layer{position:absolute;inset:0;background-position:center;background-repeat:no-repeat;background-size:cover;will-change:transform}
+#bg{transform:translateZ(-300px) scale(1.75)}
+#rock{transform:translateZ(120px) scale(.88)}
+#hint{position:fixed;left:0;right:0;bottom:0;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 22px);text-align:center;font-weight:500;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);pointer-events:none;transition:opacity .7s ease}
+#hint.off{opacity:0}
+</style>
+<div id="stage"><div id="world"><div class="layer" id="bg" style="background-image:url(bg.jpg)"></div><div class="layer" id="rock" style="background-image:url(rock.png)"></div></div></div>
+<div id="hint">Drag to tilt · Tap to hide</div>
+<script>
+(function(){
+  var MAX=10,world=document.getElementById('world'),stage=document.getElementById('stage'),hint=document.getElementById('hint');
+  var tx=0,ty=0,cx=0,cy=0,down=false,sx=0,sy=0,moved=0,sTx=0,sTy=0;
+  function clamp(v){return Math.max(-MAX,Math.min(MAX,v))}
+  stage.addEventListener('pointerdown',function(e){try{if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission&&!window.__perm){window.__perm=1;DeviceOrientationEvent.requestPermission().catch(function(){})}}catch(_){}down=true;sx=e.clientX;sy=e.clientY;sTx=tx;sTy=ty;moved=0;try{stage.setPointerCapture(e.pointerId)}catch(_){}});
+  stage.addEventListener('pointermove',function(e){
+    if(!down)return;
+    var dx=e.clientX-sx,dy=e.clientY-sy;moved=Math.max(moved,Math.abs(dx)+Math.abs(dy));
+    ty=clamp(sTy+dx/innerWidth*MAX*2.2);
+    tx=clamp(sTx-dy/innerHeight*MAX*2.2);
+    if(moved>8)hint.classList.add('off');
+  });
+  function up(){down=false;if(moved<8)hint.classList.toggle('off')}
+  stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
+  if(window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientation',function(e){
+      if(down||e.gamma==null)return;
+      ty=clamp(e.gamma*0.35);tx=clamp(-(e.beta-45)*0.35);
+    });
+  }
+  setTimeout(function(){hint.classList.add('off')},6000);
+  function frame(){
+    requestAnimationFrame(frame);
+    cx+=(tx-cx)*0.1;cy+=(ty-cy)*0.1;
+    world.style.transform='rotateX('+cx.toFixed(3)+'deg) rotateY('+cy.toFixed(3)+'deg)';
+  }
+  frame();
+})();
+</script>
