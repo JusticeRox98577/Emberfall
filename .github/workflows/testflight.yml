@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     env:
       BUNDLE_ID: ${{ vars.BUNDLE_ID }}
       TEAM_ID: ${{ vars.TEAM_ID }}
@@ -23,6 +23,20 @@ jobs:
             echo "::notice::App Store Connect key secrets not added yet. Add them, then run this workflow again."
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Select newest Xcode
+        if: steps.check.outputs.ready == 'true'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Require Xcode 26.6 or newer
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          xcodebuild -version
+          VER=$(xcodebuild -version | head -1 | awk '{print $2}')
+          if [ "$(printf '%s\n26.6\n' "$VER" | sort -V | head -1)" != "26.6" ]; then
+            echo "::error::Xcode $VER is older than 26.6. App Store Connect needs a build made with 26.6 or newer."
+            exit 1
           fi
       - name: Install xcodegen
         if: steps.check.outputs.ready == 'true'
