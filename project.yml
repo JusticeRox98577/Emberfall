@@ -22,5 +22,5 @@ targets:
         INFOPLIST_KEY_UIStatusBarHidden: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_NSMotionUsageDescription: Tilts the wallpaper scene as you move your phone.
-        INFOPLIST_KEY_CFBundleDisplayName: Ember Fall
+        INFOPLIST_KEY_CFBundleDisplayName: Emberingfall
         SWIFT_VERSION: "5.0"

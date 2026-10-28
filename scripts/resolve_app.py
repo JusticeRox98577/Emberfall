@@ -21,12 +21,12 @@ team = os.environ.get("TEAM_ID", "").strip()
 
 if not bundle:
     apps = get("/v1/apps?limit=200")["data"]
-    pick = [a for a in apps if a["attributes"]["name"].lower().replace(" ", "") == "emberfall"]
+    pick = [a for a in apps if a["attributes"]["name"].lower().replace(" ", "") in ("emberfall", "emberingfall") or "emberfall" in a["attributes"]["bundleId"].lower()]
     if not pick and len(apps) == 1:
         pick = apps
     if len(pick) != 1:
         names = ", ".join("%s (%s)" % (a["attributes"]["name"], a["attributes"]["bundleId"]) for a in apps)
-        sys.exit("Could not choose an app. Create an app named Ember Fall in App Store Connect. Found: " + (names or "none"))
+        sys.exit("Could not choose an app. Create the app in App Store Connect. Found: " + (names or "none"))
     bundle = pick[0]["attributes"]["bundleId"]
 
 if not team:
