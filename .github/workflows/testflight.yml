@@ -18,18 +18,15 @@ jobs:
         env:
           KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
-          if [ -z "$KEY_ID" ] || [ -z "$ISSUER_ID" ] || [ -z "$KEY_P8" ] || [ -z "$BUNDLE_ID" ] || [ -z "$TEAM_ID" ]; then
+          if [ -z "$KEY_ID" ] || [ -z "$ISSUER_ID" ] || [ -z "$KEY_P8" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Apple secrets not added yet. Add them, then run this workflow again."
+            echo "::notice::App Store Connect key secrets not added yet. Add them, then run this workflow again."
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Install xcodegen
         if: steps.check.outputs.ready == 'true'
         run: brew install xcodegen
-      - name: Generate project
-        if: steps.check.outputs.ready == 'true'
-        run: xcodegen generate
       - name: Write App Store Connect key
         if: steps.check.outputs.ready == 'true'
         env:
@@ -37,6 +34,15 @@ jobs:
         run: |
           mkdir -p "$HOME/private_keys"
           printf '%s' "$KEY_P8" > "$HOME/private_keys/AuthKey_$KEY_ID.p8"
+      - name: Find app and team from the App Store Connect key
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          "$RUNNER_TEMP/venv/bin/python" scripts/resolve_app.py
+      - name: Generate project
+        if: steps.check.outputs.ready == 'true'
+        run: xcodegen generate
       - name: Archive
         if: steps.check.outputs.ready == 'true'
         run: |
