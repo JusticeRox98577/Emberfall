@@ -13,17 +13,32 @@ jobs:
       ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
     steps:
       - uses: actions/checkout@v4
+      - name: Check Apple secrets
+        id: check
+        env:
+          KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          if [ -z "$KEY_ID" ] || [ -z "$ISSUER_ID" ] || [ -z "$KEY_P8" ] || [ -z "$BUNDLE_ID" ] || [ -z "$TEAM_ID" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Apple secrets not added yet. Add them, then run this workflow again."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Install xcodegen
+        if: steps.check.outputs.ready == 'true'
         run: brew install xcodegen
       - name: Generate project
+        if: steps.check.outputs.ready == 'true'
         run: xcodegen generate
       - name: Write App Store Connect key
+        if: steps.check.outputs.ready == 'true'
         env:
           KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
           mkdir -p "$HOME/private_keys"
           printf '%s' "$KEY_P8" > "$HOME/private_keys/AuthKey_$KEY_ID.p8"
       - name: Archive
+        if: steps.check.outputs.ready == 'true'
         run: |
           xcodebuild archive \
             -project EmberFall.xcodeproj -scheme EmberFall \
@@ -35,6 +50,7 @@ jobs:
             -authenticationKeyIssuerID "$ISSUER_ID" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }}
       - name: Export and upload to TestFlight
+        if: steps.check.outputs.ready == 'true'
         run: |
           cat > build/ExportOptions.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
